@@ -44,6 +44,9 @@ class Exp(BaseExp):
         self.val_ann = "instances_val2017.json"
         # name of annotation file for testing
         self.test_ann = "instances_test2017.json"
+        self.train_dataset_name = "train2017"
+        self.val_dataset_name = 'val2017'
+        self.test_dataset_name = 'test2017'
 
         # --------------- transform config ----------------- #
         # prob of applying mosaic aug
@@ -149,6 +152,7 @@ class Exp(BaseExp):
                     flip_prob=self.flip_prob,
                     hsv_prob=self.hsv_prob),
                 cache=cache_img,
+                name=self.train_dataset_name
             )
 
         dataset = MosaicDetection(
@@ -275,7 +279,7 @@ class Exp(BaseExp):
         valdataset = COCODataset(
             data_dir=self.data_dir,
             json_file=self.val_ann if not testdev else self.test_ann,
-            name="val2017" if not testdev else "test2017",
+            name=self.val_dataset_name if not testdev else self.test_dataset_name,
             img_size=self.test_size,
             preproc=ValTransform(legacy=legacy),
         )

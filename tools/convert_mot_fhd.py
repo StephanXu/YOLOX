@@ -29,14 +29,14 @@ categories = [
     dict(supercategory='others', id=5, name='ball'),
 ]
 
-def convert_dataset(base_dir, output_dir, dataset_name, stride = 1):
+def convert_dataset(base_dir, output_dir, dataset_name):
     images = []
     annotations = []
 
     output_images_dir = osp.join(output_dir, dataset_name)
     id_counter = 0
     annotation_id = 0
-    os.makedirs(output_images_dir)
+    os.mkdir(output_images_dir)
     annotations_dir = osp.join(output_dir, 'annotations')
     os.makedirs(annotations_dir, exist_ok=True)
 
@@ -75,9 +75,6 @@ def convert_dataset(base_dir, output_dir, dataset_name, stride = 1):
         # ====================
         for img_filename in tqdm.tqdm(os.listdir(frame_dir)):
             id_counter += 1
-            if id_counter % stride != 0:
-                continue
-
             output_image_filename = f'{str(id_counter).zfill(12)}.jpg'
 
             # copy image
@@ -110,12 +107,10 @@ def convert_dataset(base_dir, output_dir, dataset_name, stride = 1):
 def main():
     convert_dataset(base_dir='D:\\stephanxu\\soccer-net-tracking\\tracking\\train',
                     output_dir='D:\\stephanxu\\workspace\\YOLOX\\datasets\\soccer',
-                    dataset_name='train',
-                    stride=5)
+                    dataset_name='train')
     convert_dataset(base_dir='D:\\stephanxu\\soccer-net-tracking\\tracking\\test',
                     output_dir='D:\\stephanxu\\workspace\\YOLOX\\datasets\\soccer',
-                    dataset_name='test',
-                    stride=5)
+                    dataset_name='test')
 
 if __name__ == '__main__':
     main()

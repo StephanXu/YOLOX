@@ -5,7 +5,7 @@
 import cv2
 import numpy as np
 
-__all__ = ["vis"]
+__all__ = ["vis", "vis_mask"]
 
 
 def vis(img, boxes, scores, cls_ids, conf=0.5, class_names=None):
@@ -39,6 +39,50 @@ def vis(img, boxes, scores, cls_ids, conf=0.5, class_names=None):
         )
         cv2.putText(img, text, (x0, y0 + txt_size[1]), font, 0.4, txt_color, thickness=1)
 
+    return img
+
+def vis_mask(img, boxes, scores, cls_ids, conf=0.5, class_names=None):
+    box_layer = np.zeros_like(img)
+    mask = np.zeros_like(img)
+
+    for i in range(len(boxes)):
+        box = boxes[i]
+        cls_id = int(cls_ids[i])
+        score = scores[i]
+        if score < conf:
+            continue
+        x0 = int(box[0])
+        y0 = int(box[1])
+        x1 = int(box[2])
+        y1 = int(box[3])
+
+        v1 = (x0, y0)
+        v2 = (x1, y1)
+        l, t = v1
+        r, b = v2
+        color = (_COLORS[cls_id] * 255).astype(np.uint8).tolist()
+        mask[t:b, l:r] = img[t:b, l:r]
+        cv2.rectangle(box_layer, v1, v2, color=color, thickness=2)
+        
+        text = '{}'.format(class_names[cls_id])
+        txt_color = (0, 0, 0) if np.mean(_COLORS[cls_id]) > 0.5 else (255, 255, 255)
+        font = cv2.FONT_HERSHEY_SIMPLEX
+
+        txt_size = cv2.getTextSize(text, font, 0.4, 1)[0]
+
+        txt_bk_color = (_COLORS[cls_id] * 255 * 0.7).astype(np.uint8).tolist()
+        cv2.rectangle(
+            img,
+            (x0, y0 + 1),
+            (x0 + txt_size[0] + 1, y0 + int(1.5*txt_size[1])),
+            txt_bk_color,
+            -1
+        )
+        cv2.putText(img, text, (x0, y0 + txt_size[1]), font, 0.4, txt_color, thickness=1)
+    
+    img = cv2.addWeighted(img, 0.7, mask, 0.3, 0)
+    img = cv2.addWeighted(img, 1, box_layer, 1, 0)
+    
     return img
 
 

@@ -15,7 +15,7 @@ import torch
 from yolox.data.data_augment import ValTransform
 from yolox.data.datasets import COCO_CLASSES
 from yolox.exp import get_exp
-from yolox.utils import fuse_model, get_model_info, postprocess, vis
+from yolox.utils import fuse_model, get_model_info, postprocess, vis_mask
 
 IMAGE_EXT = [".jpg", ".jpeg", ".webp", ".bmp", ".png"]
 
@@ -97,6 +97,9 @@ def get_image_list(path):
                 image_names.append(apath)
     return image_names
 
+SOCCER_CLS_NAMES = (
+    'player', 'goalkeeper', 'referee', 'cast', 'ball'
+)
 
 class Predictor(object):
     def __init__(
@@ -197,7 +200,7 @@ class Predictor(object):
         cls = output[:, 6]
         scores = output[:, 4] * output[:, 5]
 
-        vis_res = vis(img, bboxes, scores, cls, cls_conf, self.cls_names)
+        vis_res = vis_mask(img, bboxes, scores, cls, cls_conf, self.cls_names)
         return vis_res
 
 
@@ -320,7 +323,7 @@ def main(exp, args):
         decoder = None
 
     predictor = Predictor(
-        model, exp, COCO_CLASSES, trt_file, decoder,
+        model, exp, SOCCER_CLS_NAMES, trt_file, decoder,
         args.device, args.fp16, args.legacy,
     )
     current_time = time.localtime()

@@ -1,3 +1,5 @@
+from typing import Tuple
+
 import os
 import os.path as osp
 import configparser
@@ -5,7 +7,16 @@ import pandas as pd
 import tqdm
 import shutil
 import json
+import cv2
 
+def region_origin_points(image_size: Tuple[int, int], input_size: Tuple[int, int], row: int, col: int, img=None):
+    height, width = image_size
+    input_height, input_width = input_size
+    res = []
+    for x in range(0, width - input_width + 1, (width - input_width) // (col - 1)):
+        for y in range(0, height - input_height + 1, (height - input_height) // (row - 1)):
+            res.append((x, y, None if not img  else img[y:y + input_height, x:x + input_width]))
+    return res
 
 def _get_tracklet_categories(tracklet_name: str):
     if tracklet_name.find('player') != -1:
@@ -73,31 +84,47 @@ def convert_dataset(base_dir, output_dir, dataset_name, stride = 1):
         # ====================
         # convert annoations
         # ====================
+        input_size = (640, 640)
+        input_height, input_width = input_size
         for img_filename in tqdm.tqdm(os.listdir(frame_dir)):
-            id_counter += 1
-            if id_counter % stride != 0:
-                continue
+            origin_img = cv2.imread(osp.join(frame_dir, img_filename))
+            for base_x, base_y, crop in region_origin_points((im_height, im_width), input_size, 4, 2, origin_img):
+                id_counter += 1
+                if id_counter % stride != 0:
+                    continue
 
-            output_image_filename = f'{str(id_counter).zfill(12)}.jpg'
+                crop_r, crop_b = base_x + input_width, base_y + input_height
+                output_image_filename = f'{str(id_counter).zfill(12)}.jpg'
+                cv2.imwrite(osp.join(output_images_dir, output_image_filename), crop)
 
-            # copy image
-            shutil.copy(osp.join(frame_dir, img_filename), osp.join(
-                output_images_dir, output_image_filename))
-            images.append(dict(filename=output_image_filename,
-                          height=im_height, width=im_width, id=id_counter))
+                images.append(dict(filename=output_image_filename,
+                                   height=input_height,
+                                   width=input_width,
+                                   id=id_counter))
+                
+                # generate instances
+                for _, obj in gt[(gt.frame == int(img_filename.replace(im_ext, '')))].iterrows():
+                    l, t, w, h = map(int, (obj['x'], obj['y'], obj['w'], obj['h']))
+                    r, b = l + w, t + h
+                    if l + w < base_x or l > crop_r:
+                        continue
+                    if t + h < base_y or t > crop_b:
+                        continue
+                    l = max(base_x, l)
+                    t = max(base_y, t)
+                    w = min(crop_r, r) - l
+                    h = min(crop_b, b) - t
+                    l, t = l - base_x, t - base_y
+                    r, b = l + w, t + h
 
-            # generate instances
-            for _, obj in gt[gt['frame'] == int(img_filename.replace(im_ext, ''))].iterrows():
-                annotation_id += 1
-                l, t, w, h = map(int, (obj['x'], obj['y'], obj['w'], obj['h']))
-                annotations.append(dict(category_id=tracklets[obj['track']],
-                                        image_id=id_counter,
-                                        bbox=list(
-                                            map(int, (obj['x'], obj['y'], obj['w'], obj['h']))),
-                                        iscrowd=0,
-                                        id=annotation_id,
-                                        segmentation=[l, t, l, t + h, l + w, t + h, l + w, t],
-                                        area=w * h))
+                    annotation_id += 1
+                    annotations.append(dict(category_id=tracklets[obj['track']],
+                                            image_id=id_counter,
+                                            bbox=list(map(int, (l, t, w, h))),
+                                            iscrowd=0,
+                                            id=annotation_id,
+                                            segmentation=[l, t, l, b, r, b, r, t],
+                                            area=w * h))
     label = {
         'images': images,
         'categories': categories,

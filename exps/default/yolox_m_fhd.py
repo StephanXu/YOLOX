@@ -26,3 +26,5 @@ class Exp(MyExp):
         self.val_dataset_name = 'test'
         self.test_dataset_name = 'test'
         self.num_classes = 5
+
+        self.mosaic_prob = 0

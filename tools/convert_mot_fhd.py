@@ -15,7 +15,7 @@ def region_origin_points(image_size: Tuple[int, int], input_size: Tuple[int, int
     res = []
     for x in range(0, width - input_width + 1, (width - input_width) // (col - 1)):
         for y in range(0, height - input_height + 1, (height - input_height) // (row - 1)):
-            res.append((x, y, None if not img  else img[y:y + input_height, x:x + input_width]))
+            res.append((x, y, (None if img is None else img[y:y + input_height, x:x + input_width])))
     return res
 
 def _get_tracklet_categories(tracklet_name: str):

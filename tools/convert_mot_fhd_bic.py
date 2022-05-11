@@ -22,22 +22,19 @@ def _get_tracklet_categories(tracklet_name: str):
     if tracklet_name.find('player') != -1:
         return 1
     elif tracklet_name.find('goalkeeper') != -1:
-        return 2
+        return 1
     elif tracklet_name.find('referee') != -1:
-        return 3
+        return 1
     elif tracklet_name.find('other') != -1:
-        return 4
+        return 1
     elif tracklet_name.find('ball') != -1:
-        return 5
+        return 2
     raise Exception(f"Unexpected tracklet name: {tracklet_name}")
 
 
 categories = [
-    dict(supercategory='person', id=1, name='player'),
-    dict(supercategory='person', id=2, name='goalkeeper'),
-    dict(supercategory='person', id=3, name='referee'),
-    dict(supercategory="person", id=4, name="cast"),
-    dict(supercategory='others', id=5, name='ball'),
+    dict(supercategory='person', id=1, name='person'),
+    dict(supercategory='ball', id=2, name='ball'),
 ]
 
 def convert_dataset(base_dir, output_dir, dataset_name, stride = 1):
@@ -139,11 +136,11 @@ def convert_dataset(base_dir, output_dir, dataset_name, stride = 1):
 
 def main():
     convert_dataset(base_dir='/home/stephanxu/datasets/soccer-net/tracking/train',
-                    output_dir='/home/stephanxu/datasets/soccer-crop',
+                    output_dir='/home/stephanxu/datasets/soccer-crop-bi',
                     dataset_name='train',
                     stride=10)
     convert_dataset(base_dir='/home/stephanxu/datasets/soccer-net/tracking/test',
-                    output_dir='/home/stephanxu/datasets/soccer-crop',
+                    output_dir='/home/stephanxu/datasets/soccer-crop-bi',
                     dataset_name='test',
                     stride=10)
 

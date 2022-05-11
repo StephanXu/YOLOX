@@ -7,7 +7,7 @@ import time
 import math
 import numpy as np
 from loguru import logger
-
+from convert_mot_fhd import region_origin_points
 import cv2
 
 import torch
@@ -153,11 +153,10 @@ class Predictor(object):
         c, r = math.ceil((width + 3) / bsize), math.ceil((height + 3) / bsize)
         crops = []
         count = 0
-        for x in range(0, width - bsize + 1, (width - bsize) // (c - 1)):
-            for y in range(0, height - bsize + 1, (height - bsize) // (r - 1)):
-                sub_img, _ = self.preproc(img[y:y + bsize, x:x + bsize], None, self.test_size)
-                crops.append(sub_img)
-                count += 1
+        for x, y, sub_img in region_origin_points((height, width), (bsize, bsize), r, c, img):
+            sub_img, _ = self.preproc(sub_img, None, self.test_size)
+            crops.append(sub_img)
+            count += 1
 
         img = torch.from_numpy(np.array(crops))
         img = img.float()
@@ -172,11 +171,10 @@ class Predictor(object):
             if self.decoder is not None:
                 outputs = self.decoder(outputs, dtype=outputs.type())
             count = 0
-            for x in range(0, width - bsize + 1, (width - bsize) // (c - 1)):
-                for y in range(0, height - bsize + 1, (height - bsize) // (r - 1)):
-                    outputs[count, :, 0] += x
-                    outputs[count, :, 1] += y
-                    count += 1
+            for x, y, sub_img in region_origin_points((height, width), (bsize, bsize), r, c, img):
+                outputs[count, :, 0] += x
+                outputs[count, :, 1] += y
+                count += 1
             outputs = torch.reshape(outputs, (1, -1, outputs.shape[2]))
 
             outputs = postprocess(

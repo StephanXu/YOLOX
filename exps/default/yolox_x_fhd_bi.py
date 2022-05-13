@@ -17,9 +17,9 @@ class Exp(MyExp):
         self.train_ann = 'instances_train.json'
         self.val_ann = 'instances_test.json'
         self.test_ann = 'instances_test.json'
-        self.data_dir = os.path.join('datasets', 'soccer')
+        self.data_dir = os.path.join('datasets', 'soccer-bi')
         self.train_dataset_name = "train"
         self.val_dataset_name = 'test'
         self.test_dataset_name = 'test'
-        self.num_classes = 5
+        self.num_classes = 2 
         

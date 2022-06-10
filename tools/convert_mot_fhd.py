@@ -139,13 +139,13 @@ def convert_dataset(base_dir, output_dir, dataset_name, stride = 1):
 
 def main():
     convert_dataset(base_dir='/home/stephanxu/datasets/soccer-net/tracking/train',
-                    output_dir='/home/stephanxu/datasets/soccer-crop',
+                    output_dir='/home/stephanxu/datasets/soccer-full',
                     dataset_name='train',
-                    stride=10)
+                    stride=5)
     convert_dataset(base_dir='/home/stephanxu/datasets/soccer-net/tracking/test',
-                    output_dir='/home/stephanxu/datasets/soccer-crop',
+                    output_dir='/home/stephanxu/datasets/soccer-full',
                     dataset_name='test',
-                    stride=10)
+                    stride=5)
 
 if __name__ == '__main__':
     main()

@@ -9,7 +9,7 @@ import numpy as np
 from loguru import logger
 from convert_mot_fhd import region_origin_points
 import cv2
-
+from tqdm import tqdm
 import torch
 
 from yolox.data.data_augment import ValTransform
@@ -97,9 +97,11 @@ def get_image_list(path):
                 image_names.append(apath)
     return image_names
 
-SOCCER_CLS_NAMES = (
-    'player', 'goalkeeper', 'referee', 'cast', 'ball'
-)
+# SOCCER_CLS_NAMES = (
+#     'player', 'goalkeeper', 'referee', 'cast', 'ball'
+# )
+
+SOCCER_CLS_NAMES = ('player', 'ball')
 
 class Predictor(object):
     def __init__(
@@ -181,7 +183,7 @@ class Predictor(object):
                 outputs, self.num_classes, self.confthre,
                 self.nmsthre, class_agnostic=True
             )
-            logger.info("Infer time: {:.4f}s".format(time.time() - t0))
+            # logger.info("Infer time: {:.4f}s".format(time.time() - t0))
         return outputs, img_info
 
     def visual(self, output, img_info, cls_conf=0.35):
@@ -229,6 +231,9 @@ def imageflow_demo(predictor, vis_folder, current_time, args):
     width = cap.get(cv2.CAP_PROP_FRAME_WIDTH)  # float
     height = cap.get(cv2.CAP_PROP_FRAME_HEIGHT)  # float
     fps = cap.get(cv2.CAP_PROP_FPS)
+    total_frame = cap.get(cv2.CAP_PROP_FRAME_COUNT)
+    frame_count = 0
+    pbar = tqdm(total=total_frame)
     if args.save_result:
         save_folder = os.path.join(
             vis_folder, time.strftime("%Y_%m_%d_%H_%M_%S", current_time)
@@ -257,6 +262,7 @@ def imageflow_demo(predictor, vis_folder, current_time, args):
             ch = cv2.waitKey(1)
             if ch == 27 or ch == ord("q") or ch == ord("Q"):
                 break
+        pbar.update()
 
 
 def main(exp, args):
